@@ -13,29 +13,35 @@ use Http\Client\HttpClient;
 use Http\Client\Socket\Client as SocketHttpClient;
 use Http\Message\MessageFactory\GuzzleMessageFactory;
 
+use Docker\API\Client as DockerClient;
+
 final class DockerClientFactory
 {
     /**
      * ( .
      */
-    public static function create(array $config = [], PluginClientFactory $pluginClientFactory = null): HttpClient
+    public static function create(array $config = [], PluginClientFactory $pluginClientFactory = null): \Http\Client\Common\PluginClient
     {
         if (!\array_key_exists('remote_socket', $config)) {
             $config['remote_socket'] = 'unix:///var/run/docker.sock';
         }
 
-        $messageFactory = new GuzzleMessageFactory();
-        $socketClient = new SocketHttpClient($messageFactory, $config);
         $host = \preg_match('/unix:\/\//', $config['remote_socket']) ? 'http://localhost' : $config['remote_socket'];
 
         $pluginClientFactory = $pluginClientFactory ?? new PluginClientFactory();
 
+        $httpClient = new \Http\Client\Common\PluginClient(
+            \Http\Discovery\Psr18ClientDiscovery::find()
+        );
+
+        $socketClient = new SocketHttpClient($httpClient, $config);
+
         return $pluginClientFactory->createClient($socketClient, [
             new ContentLengthPlugin(),
             new DecoderPlugin(),
-            new AddHostPlugin(new Uri($host)),
+            new AddHostPlugin(new Uri($host))
         ], [
-            'client_name' => 'docker-client',
+            'client_name' => 'docker-client'
         ]);
     }
 

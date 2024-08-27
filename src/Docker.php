@@ -23,61 +23,61 @@ class Docker extends Client
     /**
      * {@inheritdoc}
      */
-    public function containerAttach(string $id, array $queryParameters = [], string $fetch = self::FETCH_OBJECT)
+    public function containerAttach(string $id, array $queryParameters = [], string $fetch = self::FETCH_OBJECT, array $accept = [])
     {
-        return $this->executePsr7Endpoint(new ContainerAttach($id, $queryParameters), $fetch);
+        return $this->executeEndpoint(new ContainerAttach($id, $queryParameters, $accept), $fetch);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function containerAttachWebsocket(string $id, array $queryParameters = [], string $fetch = self::FETCH_OBJECT)
+    public function containerAttachWebsocket(string $id, array $queryParameters = [], string $fetch = self::FETCH_OBJECT, array $accept = [])
     {
-        return $this->executePsr7Endpoint(new ContainerAttachWebsocket($id, $queryParameters), $fetch);
+        return $this->executeEndpoint(new ContainerAttachWebsocket($id, $queryParameters, $accept), $fetch);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function containerLogs(string $id, array $queryParameters = [], string $fetch = self::FETCH_OBJECT)
+    public function containerLogs(string $id, array $queryParameters = [], string $fetch = self::FETCH_OBJECT, array $accept = [])
     {
-        return $this->executePsr7Endpoint(new ContainerLogs($id, $queryParameters), $fetch);
+        return $this->executeEndpoint(new ContainerLogs($id, $queryParameters, $accept), $fetch);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function execStart(string $id, \Docker\API\Model\ExecIdStartPostBody $execStartConfig, string $fetch = self::FETCH_OBJECT)
+    public function execStart(string $id, ?\Docker\API\Model\ExecIdStartPostBody $requestBody = null, string $fetch = self::FETCH_OBJECT)
     {
-        return $this->executePsr7Endpoint(new ExecStart($id, $execStartConfig), $fetch);
+        return $this->executeEndpoint(new ExecStart($id, $requestBody), $fetch);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function imageBuild($inputStream, array $queryParameters = [], array $headerParameters = [], string $fetch = self::FETCH_OBJECT)
+    public function imageBuild($requestBody = null, array $queryParameters = [], array $headerParameters = [], string $fetch = self::FETCH_OBJECT)
     {
-        return $this->executePsr7Endpoint(new ImageBuild($inputStream, $queryParameters, $headerParameters), $fetch);
+        return $this->executeEndpoint(new ImageBuild($requestBody, $queryParameters, $headerParameters), $fetch);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function imageCreate(string $inputImage, array $queryParameters = [], array $headerParameters = [], string $fetch = self::FETCH_OBJECT)
+    public function imageCreate(?string $requestBody = null, array $queryParameters = [], array $headerParameters = [], string $fetch = self::FETCH_OBJECT)
     {
-        return $this->executePsr7Endpoint(new ImageCreate($inputImage, $queryParameters, $headerParameters), $fetch);
+        return $this->executeEndpoint(new ImageCreate($requestBody, $queryParameters, $headerParameters), $fetch);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function imagePush(string $name, array $queryParameters = [], array $headerParameters = [], string $fetch = self::FETCH_OBJECT)
+    public function imagePush(string $name, array $queryParameters = [], array $headerParameters = [], string $fetch = self::FETCH_OBJECT, array $accept = [])
     {
         if (isset($headerParameters['X-Registry-Auth']) && $headerParameters['X-Registry-Auth'] instanceof AuthConfig) {
             $headerParameters['X-Registry-Auth'] = \base64_encode($this->serializer->serialize($headerParameters['X-Registry-Auth'], 'json'));
         }
 
-        return $this->executePsr7Endpoint(new ImagePush($name, $queryParameters, $headerParameters), $fetch);
+        return $this->executeEndpoint(new ImagePush($name, $queryParameters, $headerParameters, $accept), $fetch);
     }
 
     /**
@@ -85,15 +85,15 @@ class Docker extends Client
      */
     public function systemEvents(array $queryParameters = [], string $fetch = self::FETCH_OBJECT)
     {
-        return $this->executePsr7Endpoint(new SystemEvents($queryParameters), $fetch);
+        return $this->executeEndpoint(new SystemEvents($queryParameters), $fetch);
     }
 
-    public static function create($httpClient = null)
+    public static function create($httpClient = null, array $additionalPlugins = [], array $additionalNormalizers = [])
     {
         if (null === $httpClient) {
             $httpClient = DockerClientFactory::createFromEnv();
         }
 
-        return parent::create($httpClient);
+        return parent::create($httpClient, $additionalPlugins, $additionalNormalizers);
     }
 }
